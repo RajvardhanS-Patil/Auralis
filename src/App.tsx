@@ -1,10 +1,3 @@
-/**
- * App.tsx — Root application component for Auralis AAC.
- *
- * Orchestrates the camera, MediaPipe inference, blink detection,
- * Morse code engine, and TTS — connecting them to the UI.
- */
-
 import { useRef, useEffect, useCallback } from 'react';
 import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
 import type { FaceLandmarkerResult } from '@mediapipe/tasks-vision';
@@ -19,11 +12,6 @@ import { OutputDisplay } from './components/OutputDisplay/OutputDisplay';
 import { MorseBufferDisplay } from './components/MorseBuffer/MorseBufferDisplay';
 import { StatusBar } from './components/StatusBar/StatusBar';
 
-import './App.css';
-
-/**
- * Root application component.
- */
 function App() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const faceLandmarkerRef = useRef<FaceLandmarker | null>(null);
@@ -45,9 +33,6 @@ function App() {
   const clearText = useAuralisStore((s) => s.clearText);
   const appPhase = useAuralisStore((s) => s.appPhase);
 
-  /**
-   * Initializes MediaPipe Face Landmarker.
-   */
   const initMediaPipe = useCallback(async (): Promise<FaceLandmarker> => {
     const filesetResolver = await FilesetResolver.forVisionTasks(
       'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm'
@@ -68,16 +53,9 @@ function App() {
     return landmarker;
   }, []);
 
-  /**
-   * Starts the webcam video stream.
-   */
   const startCamera = useCallback(async (): Promise<MediaStream> => {
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: 'user',
-        width: { ideal: 640 },
-        height: { ideal: 480 },
-      },
+      video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
     });
 
     if (videoRef.current) {
@@ -88,13 +66,9 @@ function App() {
         }
       });
     }
-
     return stream;
   }, []);
 
-  /**
-   * Main detection loop — runs on every animation frame.
-   */
   const detectLoop = useCallback(() => {
     const video = videoRef.current;
     const landmarker = faceLandmarkerRef.current;
@@ -105,10 +79,7 @@ function App() {
       return;
     }
 
-    const result: FaceLandmarkerResult = landmarker.detectForVideo(
-      video,
-      performance.now()
-    );
+    const result: FaceLandmarkerResult = landmarker.detectForVideo(video, performance.now());
 
     if (result.faceLandmarks && result.faceLandmarks.length > 0) {
       setFaceDetected(true);
@@ -125,9 +96,6 @@ function App() {
     animFrameRef.current = requestAnimationFrame(detectLoop);
   }, [setFaceDetected]);
 
-  /**
-   * Main initialization effect — sets up everything on mount.
-   */
   useEffect(() => {
     let mounted = true;
 
@@ -135,57 +103,34 @@ function App() {
       try {
         setAppPhase('loading');
 
-        // Initialize TTS
         ttsControllerRef.current = new TTSController();
-
-        // Initialize Blink Detector
         const blink = new BlinkDetector();
         blinkDetectorRef.current = blink;
-
-        // Initialize Morse Engine
         const morse = new MorseEngine();
         morseEngineRef.current = morse;
 
-        // Wire blink detector → morse engine
         blink.onBlink((event) => {
           if (event.type === 'blink_start') {
             morse.onBlinkStart(event.timestamp);
           } else if (event.type === 'blink_end' && event.duration) {
             morse.onBlinkEnd(event.timestamp, event.duration);
-
-            // Visual feedback
-            if (event.duration <= 300) {
-              setLastBlinkType('dot');
-            } else {
-              setLastBlinkType('dash');
-            }
-
-            // Clear visual feedback after 300ms
+            if (event.duration <= 300) setLastBlinkType('dot');
+            else setLastBlinkType('dash');
             setTimeout(() => setLastBlinkType(null), 300);
           }
         });
 
-        // Wire morse engine → app state
         morse.on((event) => {
           switch (event.type) {
-            case 'character':
-              appendCharacter(event.char);
-              break;
-            case 'word_space':
-              appendSpace();
-              break;
-            case 'state_change':
-              setMorseState(event.state);
-              break;
-            case 'buffer_update':
-              setMorseBuffer(event.buffer);
-              break;
+            case 'character': appendCharacter(event.char); break;
+            case 'word_space': appendSpace(); break;
+            case 'state_change': setMorseState(event.state); break;
+            case 'buffer_update': setMorseBuffer(event.buffer); break;
             case 'command':
               if (event.command === 'BACKSPACE') backspace();
               if (event.command === 'CLEAR_ALL') clearText();
               if (event.command === 'SPEAK') {
-                const text = useAuralisStore.getState().outputText;
-                ttsControllerRef.current?.speak(text);
+                ttsControllerRef.current?.speak(useAuralisStore.getState().outputText);
               }
               break;
             case 'emergency':
@@ -196,28 +141,22 @@ function App() {
           }
         });
 
-        // Initialize MediaPipe
         const landmarker = await initMediaPipe();
         if (!mounted) return;
         faceLandmarkerRef.current = landmarker;
 
-        // Start camera
         await startCamera();
         if (!mounted) return;
         setCameraActive(true);
 
-        // Skip calibration for now — use defaults and auto-arm
         blink.setCalibration(0.30);
         morse.forceArm();
         setAppPhase('active');
 
-        // Start detection loop
         detectLoop();
       } catch (err) {
-        if (err instanceof Error) {
-          if (err.name === 'NotAllowedError') {
-            setCameraActive(false);
-          }
+        if (err instanceof Error && err.name === 'NotAllowedError') {
+          setCameraActive(false);
         }
       }
     }
@@ -230,31 +169,42 @@ function App() {
       faceLandmarkerRef.current?.close();
       morseEngineRef.current?.destroy();
       ttsControllerRef.current?.destroy();
-
-      // Stop camera stream
-      const video = videoRef.current;
-      if (video?.srcObject) {
-        const stream = video.srcObject as MediaStream;
-        stream.getTracks().forEach((track) => track.stop());
+      if (videoRef.current?.srcObject) {
+        (videoRef.current.srcObject as MediaStream).getTracks().forEach((t) => t.stop());
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
-    <div className={`app ${appPhase === 'emergency' ? 'app--emergency' : ''}`}>
-      <header className="app__header">
-        <h1 className="app__title">
-          <span className="app__logo" aria-hidden="true">🧠</span>
-          Auralis
-        </h1>
+    <div className={`flex flex-col h-screen overflow-hidden ${appPhase === 'emergency' ? 'shadow-[inset_0_0_40px_rgba(255,23,68,0.3)] animate-pulse' : ''}`}>
+      
+      {/* TopAppBar */}
+      <header className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-gutter h-16 bg-background/80 backdrop-blur-md border-b border-white/5">
+        <div className="flex items-center gap-3">
+          <span className="text-xl font-semibold tracking-tighter flex items-center gap-2">
+            <span className="material-symbols-outlined text-accent">neurology</span> Auralis
+          </span>
+        </div>
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-medium text-secondary uppercase tracking-widest">System</span>
+              <span className="text-[10px] font-bold text-clinical-active px-2 py-0.5 rounded-full bg-clinical-active/10 border border-clinical-active/20">OPTIMAL</span>
+            </div>
+            <button className="p-2 rounded-lg hover:bg-white/5 transition-colors text-secondary">
+              <span className="material-symbols-outlined">settings</span>
+            </button>
+          </div>
+        </div>
       </header>
 
-      <main className="app__main">
+      {/* Main Canvas */}
+      <main className="flex-1 flex flex-col pt-16 pb-24">
         <OutputDisplay />
         <MorseBufferDisplay />
       </main>
 
+      {/* Bottom Diagnostic Footer */}
       <StatusBar videoRef={videoRef} />
     </div>
   );

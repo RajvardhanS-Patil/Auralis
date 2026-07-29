@@ -1,35 +1,22 @@
-/**
- * OutputDisplay — The main text output area where the user's composed text appears.
- * This is the largest, most prominent element on the screen.
- */
-
 import { useAuralisStore } from '../../stores/auralisStore';
-import './OutputDisplay.css';
 
-/**
- * Renders the main output text with a blinking cursor.
- */
 export function OutputDisplay() {
   const outputText = useAuralisStore((s) => s.outputText);
   const appPhase = useAuralisStore((s) => s.appPhase);
 
+  const placeholder = appPhase === 'active'
+    ? 'Start blinking to type...'
+    : appPhase === 'calibrating'
+    ? 'Calibrating...'
+    : 'Welcome to Auralis';
+
   return (
-    <section className="output-display" aria-live="polite" aria-label="Communication output">
-      <div className="output-display__text-area">
-        {outputText ? (
-          <p className="output-display__text">{outputText}</p>
-        ) : (
-          <p className="output-display__placeholder">
-            {appPhase === 'active'
-              ? 'Start blinking to type...'
-              : appPhase === 'calibrating'
-              ? 'Calibrating...'
-              : 'Welcome to Auralis'}
-          </p>
-        )}
-        <span className="output-display__cursor" aria-hidden="true">
-          █
-        </span>
+    <section className="flex-[5] flex flex-col items-center justify-center px-container-padding">
+      <div className="w-full max-w-6xl text-center">
+        <h1 className="text-5xl md:text-6xl font-bold leading-tight tracking-tight px-12 py-20 rounded-[2rem] glass-panel inline-block min-w-[90%]">
+          {outputText || <span className="text-secondary/50 italic font-light">{placeholder}</span>}
+          <span className="cursor-blink ml-2"></span>
+        </h1>
       </div>
     </section>
   );
