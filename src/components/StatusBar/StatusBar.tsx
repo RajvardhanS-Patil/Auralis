@@ -7,6 +7,7 @@ interface StatusBarProps {
 export function StatusBar({ videoRef }: StatusBarProps) {
   const morseState = useAuralisStore((s) => s.morseState);
   const isFaceDetected = useAuralisStore((s) => s.isFaceDetected);
+  const isHandDetected = useAuralisStore((s) => s.isHandDetected);
   const isCameraActive = useAuralisStore((s) => s.isCameraActive);
   const cameraPreviewEnabled = useAuralisStore((s) => s.cameraPreviewEnabled);
 
@@ -49,7 +50,10 @@ export function StatusBar({ videoRef }: StatusBarProps) {
           <span className="text-[9px] font-bold text-secondary uppercase tracking-[0.2em]">Sensor Stream</span>
           <span className="text-sm font-medium text-primary">Biometric Sync</span>
           <span className={`text-[10px] font-medium ${isFaceDetected ? 'text-clinical-active' : 'text-red-500'}`}>
-            {isFaceDetected ? 'TRACKING FACE' : 'SEARCHING'}
+            {isFaceDetected ? 'TRACKING FACE' : 'SEARCHING FACE'}
+          </span>
+          <span className={`text-[10px] font-medium mt-0.5 ${isHandDetected ? 'text-accent' : 'text-secondary/50'}`}>
+            {isHandDetected ? 'HAND DETECTED' : 'NO HANDS DETECTED'}
           </span>
         </div>
       </div>

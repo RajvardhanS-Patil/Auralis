@@ -28,6 +28,16 @@ interface AuralisState {
   /** The last resolved character */
   lastCharacter: string;
 
+  // --- Hand Tracking State ---
+  /** Whether a hand is currently detected */
+  isHandDetected: boolean;
+  /** Virtual cursor X coordinate (0 to 1) */
+  cursorX: number;
+  /** Virtual cursor Y coordinate (0 to 1) */
+  cursorY: number;
+  /** Whether the user is currently pinching (clicking) */
+  isPinching: boolean;
+
   // --- Feedback State ---
   /** Last registered blink type for visual feedback */
   lastBlinkType: 'dot' | 'dash' | null;
@@ -45,6 +55,9 @@ interface AuralisState {
   setMorseState: (state: MorseState) => void;
   setCameraActive: (active: boolean) => void;
   setFaceDetected: (detected: boolean) => void;
+  setHandDetected: (detected: boolean) => void;
+  setCursorPosition: (x: number, y: number) => void;
+  setIsPinching: (pinching: boolean) => void;
   appendCharacter: (char: string) => void;
   appendSpace: () => void;
   backspace: () => void;
@@ -68,6 +81,12 @@ export const useAuralisStore = create<AuralisState>((set) => ({
   outputText: '',
   morseBuffer: '',
   lastCharacter: '',
+  
+  isHandDetected: false,
+  cursorX: 0.5,
+  cursorY: 0.5,
+  isPinching: false,
+
   lastBlinkType: null,
   lastBlinkTime: 0,
   audioFeedbackEnabled: true,
@@ -78,6 +97,9 @@ export const useAuralisStore = create<AuralisState>((set) => ({
   setMorseState: (morseState) => set({ morseState }),
   setCameraActive: (isCameraActive) => set({ isCameraActive }),
   setFaceDetected: (isFaceDetected) => set({ isFaceDetected }),
+  setHandDetected: (isHandDetected) => set({ isHandDetected }),
+  setCursorPosition: (cursorX, cursorY) => set({ cursorX, cursorY }),
+  setIsPinching: (isPinching) => set({ isPinching }),
 
   appendCharacter: (char) =>
     set((s) => ({
