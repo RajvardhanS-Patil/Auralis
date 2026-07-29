@@ -82,11 +82,24 @@ graph TB
 ### 2.4 Multi-Modal Input Classifier
 This is what makes Auralis **unique**. Instead of relying solely on blinks:
 - **Blink** → Primary Morse code input (dot/dash)
+- **Hand pinch (thumb+index)** → Alternative Morse code input (dot/dash) — via companion script
+- **Hand pointing** → Controls real system cursor across entire desktop — via companion script
+- **Fist gesture** → Right-click — via companion script
 - **Head tilt left** → Select predictive text suggestion #1
 - **Head tilt right** → Select predictive text suggestion #2
 - **Sustained mouth open** → Trigger "Speak" command
 - **Triple rapid blink** → Activate / Deactivate the system (toggle sleep mode)
 - **5-second eye close** → Emergency SOS mode
+
+### 2.4.1 Hand Cursor Companion (Native Python Service)
+| Property | Detail |
+|----------|--------|
+| **Location** | `companion/hand_cursor.py` — runs natively on the OS |
+| **Library** | MediaPipe Hands (Python) + OpenCV + PyAutoGUI |
+| **Smoothing** | One Euro Filter (adaptive low-pass) — eliminates jitter without adding lag |
+| **Scope** | Controls the **real system cursor** across the entire desktop, not just the browser |
+| **Gestures** | Index finger pointing (move), Pinch (left-click), Fist (right-click) |
+| **Safety** | PyAutoGUI failsafe: drag mouse to top-left corner to emergency-stop |
 
 ### 2.5 Morse Code State Machine
 | Property | Detail |

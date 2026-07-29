@@ -33,3 +33,12 @@ coverage/
 # Misc
 *.tgz
 .cache
+
+# Stitch UI temp files
+stitch_ui_temp/
+*.zip
+
+# Python
+__pycache__/
+*.pyc
+.venv/

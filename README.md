@@ -22,6 +22,26 @@ npm install
 npm run dev
 ```
 
+## 🖐️ Hand Cursor Control (Real System Cursor)
+
+Auralis includes a **Python companion script** that lets you control your **real system cursor** anywhere on your laptop using hand gestures:
+
+```bash
+# Install Python dependencies
+pip install -r companion/requirements.txt
+
+# Run the hand cursor controller
+python companion/hand_cursor.py
+```
+
+| Gesture | Action |
+|---------|--------|
+| ☝️ Point index finger | Move cursor |
+| 🤏 Pinch (thumb + index) | Left click |
+| ✊ Fist | Right click |
+
+See [companion/README.md](./companion/README.md) for full details and tuning guide.
+
 ## 📚 Documentation
 See [docs/aac/README.md](./docs/aac/README.md) for the complete documentation index.
 

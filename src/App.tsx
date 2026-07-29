@@ -12,7 +12,6 @@ import { TTSController } from './core/speech/ttsController';
 import { OutputDisplay } from './components/OutputDisplay/OutputDisplay';
 import { MorseBufferDisplay } from './components/MorseBuffer/MorseBufferDisplay';
 import { StatusBar } from './components/StatusBar/StatusBar';
-import { VirtualCursor } from './components/VirtualCursor/VirtualCursor';
 
 function App() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -227,8 +226,6 @@ function App() {
 
   return (
     <div className={`flex flex-col h-screen overflow-hidden ${appPhase === 'emergency' ? 'shadow-[inset_0_0_40px_rgba(255,23,68,0.3)] animate-pulse' : ''}`}>
-      
-      <VirtualCursor />
 
       {/* TopAppBar */}
       <header className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-gutter h-16 bg-background/80 backdrop-blur-md border-b border-white/5">
